@@ -11,7 +11,7 @@ When the search reaches the end, shortest path is highlighted from the start to 
 
 ## How to run
 
-You will need pygame installed on your system. I suggest to do that in a virtual environment.
+You will need pygame installed on your system. I suggest you to do that in a virtual environment.
 
 All of the code is written in a single file called 'astar.py'. Download the file and simply execute the code.
 
