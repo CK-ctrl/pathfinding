@@ -1,6 +1,9 @@
+# Refer README.md to understand how to work with the interactive 2D grid.
+
 import pygame
 import math
 from queue import PriorityQueue
+from collections import deque
 
 WIDTH = 600
 WIN = pygame.display.set_mode((WIDTH,WIDTH))
@@ -11,12 +14,15 @@ GREEN = (0,255,0)
 BLUE = (0,255,0)
 YELLOW = (255,255,0)
 WHITE = (255,255,255)
+PINK = (255,182,193)
 BLACK = (0,0,0)
 PURPLE = (128,0,128)
 ORANGE = (255,165,0)
 GREY = (128,128,128)
 TURQUOISE = (64,224,208)
 
+
+# Spot is the individual cell of our grid.
 class Spot:
     def __init__(self,row,col,width,total_rows):
         self.row = row
@@ -46,28 +52,31 @@ class Spot:
     def is_end(self):
         return self.color == TURQUOISE
 
-    def reset(self):
+    def is_path(self):
+        return self.color == PURPLE
+
+    def reset(self):            # This will reset the whole grid.
         self.color = WHITE
 
-    def make_start(self):
+    def make_start(self):       # This will create the START.
         self.color = ORANGE
 
-    def make_closed(self):
+    def make_closed(self):      # This will set visited cells to red(for visuals).
         self.color = RED
 
-    def make_open(self):
+    def make_open(self):        # This will set current neighbours which can be visited to green(for visuals).
         self.color = GREEN
 
-    def make_barrier(self):
+    def make_barrier(self):     # This will create obstacles.
         self.color = BLACK
     
-    def make_end(self):
+    def make_end(self):         # This will create the END.
         self.color = TURQUOISE
     
-    def make_path(self):
+    def make_path(self):        # This will highlight the path in purpule.
         self.color = PURPLE
 
-    def draw(self, win):
+    def draw(self, win):        # This function will actually draw those (individual)cells on the grid.
         pygame.draw.rect(win, self.color, (self.x, self.y, self.width, self.width))
 
     def update_neighbors(self, grid):
@@ -87,6 +96,7 @@ class Spot:
     def __lt__(self, other):
         return False
 
+# Code for A* (star) algorithm.
 def h(p1, p2):
     x1, y1 = p1
     x2, y2 = p2
@@ -98,7 +108,59 @@ def reconstruct_path(came_from, current, draw):
         current.make_path()
         draw()
 
-def algorithm(draw, grid, start, end):
+def reconstruct_path_dfs(stack, draw):
+    while len(stack):
+        current = stack.pop()
+        current.make_path()
+        draw()
+
+# def dijkstra(draw, grid, start, end):
+
+# def bfs(draw, grid, start, end):
+
+def dfs(draw, grid, start, end):
+    stack = deque()     # Stack of nodes/cells
+    stack.append(start)
+    found = False
+
+    while len(stack):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        current = stack[-1]
+        for neighbor in current.neighbors:
+            if neighbor == end:
+                found = True
+                reconstruct_path_dfs(stack, draw)
+                break
+
+            if not neighbor.is_open() and not neighbor.is_closed() and neighbor != start and neighbor != end:
+                neighbor.make_open()
+
+        if found:
+            break;
+
+        if current != start:
+            current.make_closed()
+
+        btrack = True
+        for neighbor in current.neighbors:
+            if neighbor.is_open():
+                stack.append(neighbor)
+                btrack = False
+                break
+
+        if btrack:
+            current.color = PINK
+            stack.pop()
+            draw()
+            current.make_closed()
+
+        else:
+            draw()
+
+def a_star(draw, grid, start, end):
     count = 0
     open_set = PriorityQueue()
     open_set.put((0,count,start))
@@ -121,7 +183,7 @@ def algorithm(draw, grid, start, end):
         if current == end:
             reconstruct_path(came_from, end, draw)
             end.make_end()
-            return True 
+            return True
 
         for neighbor in current.neighbors:
             temp_g_score = g_score[current] + 1
@@ -150,7 +212,7 @@ def make_grid(rows, width):
         grid.append([])
         for j in range(rows):
             spot = Spot(i,j,gap,rows)
-            grid [i].append(spot)
+            grid[i].append(spot)
     
     return grid
 
@@ -235,9 +297,24 @@ def main(win, width):
                         for spot in row:
                             spot.update_neighbors(grid)
 
-                    algorithm(lambda: draw(win, grid, ROWS, width), grid, start, end)
+                    a_star(lambda: draw(win, grid, ROWS, width), grid, start, end)
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_d and start and end:
+                    for row in grid:
+                        for spot in row:
+                            spot.update_neighbors(grid)
+
+                    dfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
 
                 if event.key == pygame.K_c:
+                    for row in grid:
+                        for spot in row:
+                            if spot.is_path() or spot.is_closed() or spot.is_open():
+                                spot.reset()
+                    start.make_start();
+
+                if event.key == pygame.K_r:
                     start = None
                     end = None
                     grid = make_grid(ROWS, width)
