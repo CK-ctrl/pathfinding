@@ -2,12 +2,12 @@
 
 import pygame
 import math
-from queue import PriorityQueue
+from queue import PriorityQueue, Queue
 from collections import deque
 
 WIDTH = 600
 WIN = pygame.display.set_mode((WIDTH,WIDTH))
-pygame.display.set_caption("A* Path Finding Algorithm")
+pygame.display.set_caption("Path Finding Visualization Tool")
 
 RED = (255,0,0)
 GREEN = (0,255,0)
@@ -105,7 +105,8 @@ def h(p1, p2):
 def reconstruct_path(came_from, current, draw):
     while current in came_from:
         current = came_from[current]
-        current.make_path()
+        if current != None:
+            current.make_path()
         draw()
 
 def reconstruct_path_dfs(stack, draw):
@@ -116,7 +117,33 @@ def reconstruct_path_dfs(stack, draw):
 
 # def dijkstra(draw, grid, start, end):
 
-# def bfs(draw, grid, start, end):
+def bfs(draw, grid, start, end):
+    parent = {}
+    parent[start] = None
+    que = Queue(maxsize = 10000)
+    que.put(start)
+
+    while not que.empty():
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        current = que.get()         # Say this is our current node/cell/spot.
+        if current != start:
+            current.make_closed()
+        for neighbor in current.neighbors:
+            if neighbor == end:
+                parent[end] = current
+                reconstruct_path(parent, end, draw)
+                return
+
+            if not neighbor.is_open() and not neighbor.is_closed() and neighbor != start:
+                neighbor.make_open()
+                que.put(neighbor)
+                parent[neighbor] = current
+
+        draw()
+
 
 def dfs(draw, grid, start, end):
     stack = deque()     # Stack of nodes/cells
@@ -248,6 +275,11 @@ def get_clicked_pos(pos, rows, width):
 
     return row, col
 
+def neighbours(grid):
+    for row in grid:
+        for spot in row:
+            spot.update_neighbors(grid)
+
 def main(win, width):
     ROWS = 100
     grid = make_grid(ROWS, width)
@@ -292,21 +324,21 @@ def main(win, width):
                     end = None
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and start and end:
-                    for row in grid:
-                        for spot in row:
-                            spot.update_neighbors(grid)
-
+                if event.key == pygame.K_a and start and end:
+                    neighbours(grid)
                     a_star(lambda: draw(win, grid, ROWS, width), grid, start, end)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_d and start and end:
-                    for row in grid:
-                        for spot in row:
-                            spot.update_neighbors(grid)
-
+                    neighbours(grid)
                     dfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
 
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_b and start and end:
+                    neighbours(grid)
+                    bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
+
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_c:
                     for row in grid:
                         for spot in row:

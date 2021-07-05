@@ -1,7 +1,7 @@
 # Path Finding Visualization Tool
 
 This is Path Finding visualization Tool. It shows runtime working(exploring) of pathfinding algorithms.
-When the search reaches the end, shortest path is highlighted from the start to end.
+When the search reaches the end, shortest(not for DFS) path is highlighted from the start to end.
 
 ## Path Finding Algorithms used:
 1. A* (star)
@@ -38,7 +38,8 @@ Enter(press on keyborad):
 2. 'd' to run DFS algorithm.
 3. 'b' to run BFS algorithm.
 4. 'k' to run dijkstra's algorithm.
-5. 'c' to clear the grid setup. (restart)
+5. 'c' to clear paths/explored areas.
+6. 'r' to clear the grid setup. (reset whole grid)
 
 Now, sit back and see the algorithm explore your grid setup to find a shortest path between START and END cell.
 Once it reaches there, a path will be created from the END to start in purple color.
