@@ -3,6 +3,7 @@
 import pygame
 import math
 from queue import PriorityQueue, Queue
+from pqdict import PQDict
 from collections import deque
 
 WIDTH = 600
@@ -115,7 +116,42 @@ def reconstruct_path_dfs(stack, draw):
         current.make_path()
         draw()
 
-# def dijkstra(draw, grid, start, end):
+def dijkstra(draw, grid, start, end):
+    minDistance = PQDict()
+    for row in grid:
+        for spot in row:
+            if spot.is_start():
+                minDistance.additem(spot,0)
+            elif not spot.is_barrier():
+                minDistance.additem(spot,float("inf"))
+
+    parent = {}
+
+    while len(minDistance):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+        current = minDistance.popitem()
+        if current[1] == float("inf"):
+            return
+        if current[0] != start: 
+            current[0].make_closed()
+
+        for neighbor in current[0].neighbors:
+            if neighbor == end:
+                parent[end] = current[0]
+                reconstruct_path(parent, end, draw)
+                return
+
+            elif not neighbor.is_closed() and neighbor != start:
+                neighbor.make_open()
+                currentDistance = minDistance[neighbor]
+                minDistance.updateitem(neighbor,min(current[1]+1,currentDistance))
+                parent[neighbor] = current[0]
+
+        draw()
+
 
 def bfs(draw, grid, start, end):
     parent = {}
@@ -186,6 +222,7 @@ def dfs(draw, grid, start, end):
 
         else:
             draw()
+
 
 def a_star(draw, grid, start, end):
     count = 0
@@ -281,7 +318,7 @@ def neighbours(grid):
             spot.update_neighbors(grid)
 
 def main(win, width):
-    ROWS = 100
+    ROWS = 50
     grid = make_grid(ROWS, width)
     
     start = None
@@ -337,6 +374,11 @@ def main(win, width):
                 if event.key == pygame.K_b and start and end:
                     neighbours(grid)
                     bfs(lambda: draw(win, grid, ROWS, width), grid, start, end)
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_k and start and end:
+                    neighbours(grid)
+                    dijkstra(lambda: draw(win, grid, ROWS, width), grid, start, end)
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_c:
