@@ -11,7 +11,12 @@ When the search reaches the end, shortest(not for DFS) path is highlighted from 
 
 ## How to run
 
-You will need pygame installed on your system. I suggest you to do that in a virtual environment.
+You will need pygame and pqdict installed on your system. I suggest you to do that in a virtual environment.
+Using pip,
+pygame: $ pip install pygame
+pqdict: $ pip install pqdict
+
+Note: pqdict dict is required as it provides a indexed priority queue, which is used in dijkstra's algorithm for better efficiency.
 
 All of the code is written in a single file called 'astar.py'. Download the file and simply execute the code.
 
@@ -43,7 +48,3 @@ Enter(press on keyborad):
 
 Now, sit back and see the algorithm explore your grid setup to find a shortest path between START and END cell.
 Once it reaches there, a path will be created from the END to start in purple color.
-
-
-----------------------------------------------
-The only dependency of this project is pygame.
